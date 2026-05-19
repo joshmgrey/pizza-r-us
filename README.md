@@ -1,102 +1,144 @@
-# Pizza R Us — Java + MySQL Application
+# Pizza R Us
 
-A Java application for managing a pizza restaurant's orders, customers, toppings, and reporting. Connects to a MySQL database using the MySQL Connector/J JDBC driver.
+A Java console application for managing a pizza restaurant's orders, customers, toppings inventory, and financial reporting. Backed by a MySQL database via the JDBC API.
+
+---
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Getting Started](#getting-started)
+   - [Database Setup](#1-database-setup)
+   - [Configure the Connection](#2-configure-the-connection)
+   - [Download the JDBC Driver](#3-download-the-jdbc-driver)
+   - [Compile](#4-compile)
+   - [Run](#5-run)
+3. [Project Structure](#project-structure)
+4. [Troubleshooting](#troubleshooting)
+
+---
 
 ## Prerequisites
 
-- Java 8 or later
-- MySQL 8.0 or later
-- [MySQL Connector/J](https://dev.mysql.com/downloads/connector/j/) (JDBC driver)
+| Requirement | Version |
+|---|---|
+| Java (JDK) | 8 or later |
+| MySQL Server | 8.0 or later |
+| MySQL Connector/J | 8.x or 9.x |
 
-## Database Setup
+---
 
-1. Start your MySQL server and log in:
-   ```
-   mysql -u root -p
-   ```
+## Getting Started
 
-2. Run the SQL scripts in order:
-   ```sql
-   source CreateTables.sql
-   source CreateSPs.sql
-   source CreateViews.sql
-   source PopulateData.sql
-   ```
+### 1. Database Setup
 
-   To reset the database at any point:
-   ```sql
-   source DropTables.sql
-   ```
+Start your MySQL server, then log in and run the setup scripts **in the order shown below**:
 
-## Configure the Connection
-
-Open [DBConnector.java](DBConnector.java) and update the credentials to match your MySQL setup:
-
-```java
-protected static String user = "root";
-protected static String password = "your_password_here";
-private static String database_name = "PizzaDB";
-private static String url = "jdbc:mysql://127.0.0.1:3306";
+```sql
+source CreateTables.sql
+source CreateSPs.sql
+source CreateViews.sql
+source PopulateData.sql
 ```
 
-The default port `3306` is the MySQL default — change `url` only if your instance runs on a different port.
+To wipe and reset the database at any point:
 
-## Compile and Run
+```sql
+source DropTables.sql
+```
 
-### Download the MySQL Connector/J JAR
+Then re-run the setup scripts above.
 
-Download `mysql-connector-j-<version>.jar` from https://dev.mysql.com/downloads/connector/j/ (select "Platform Independent").
+---
 
-### Compile
+### 2. Configure the Connection
 
-Place the JAR in the project directory (or any path you prefer), then compile all Java files with the connector on the classpath:
+Open [`DBConnector.java`](DBConnector.java) and update the four fields to match your local MySQL installation:
 
-**Windows (PowerShell):**
+```java
+protected static String user          = "root";
+protected static String password      = "your_password_here";
+private static String   database_name = "PizzaDB";
+private static String   url           = "jdbc:mysql://127.0.0.1:3306";
+```
+
+> **Note:** Port `3306` is the MySQL default. Only change `url` if your instance runs on a non-standard port.
+
+---
+
+### 3. Download the JDBC Driver
+
+Download the MySQL Connector/J JAR from the [official MySQL downloads page](https://dev.mysql.com/downloads/connector/j/) — select **Platform Independent**. Place the JAR in the project root directory.
+
+The commands below assume version `9.3.0`. Replace the filename with the version you downloaded.
+
+---
+
+### 4. Compile
+
+Open a terminal in the project root directory and run:
+
+**Windows (PowerShell)**
 ```powershell
 javac -cp ".;mysql-connector-j-9.3.0.jar" *.java
 ```
 
-**macOS / Linux:**
+**macOS / Linux**
 ```bash
 javac -cp ".:mysql-connector-j-9.3.0.jar" *.java
 ```
 
-Replace `mysql-connector-j-9.3.0.jar` with the actual filename of the JAR you downloaded.
+---
 
-### Run
+### 5. Run
 
-**Windows (PowerShell):**
+**Windows (PowerShell)**
 ```powershell
 java -cp ".;mysql-connector-j-9.3.0.jar" cpsc4620.Menu
 ```
 
-**macOS / Linux:**
+**macOS / Linux**
 ```bash
 java -cp ".:mysql-connector-j-9.3.0.jar" cpsc4620.Menu
 ```
 
+---
+
 ## Project Structure
 
-| File | Description |
+### Java Source Files
+
+| File | Role |
 |---|---|
-| `DBConnector.java` | Opens the JDBC connection to MySQL |
-| `DBNinja.java` | All database query and update logic |
-| `Menu.java` | Main entry point / UI loop |
-| `Order.java` / `DineinOrder.java` / `PickupOrder.java` / `DeliveryOrder.java` | Order model classes |
+| `DBConnector.java` | Establishes the JDBC connection to MySQL |
+| `DBNinja.java` | Data access layer — all queries and updates |
+| `Menu.java` | Application entry point and interactive menu loop |
+| `Order.java` | Base order model |
+| `DineinOrder.java` | Dine-in order (extends `Order`) |
+| `PickupOrder.java` | Pickup order (extends `Order`) |
+| `DeliveryOrder.java` | Delivery order with address (extends `Order`) |
 | `Pizza.java` | Pizza model |
-| `Topping.java` | Topping model with inventory tracking |
+| `Topping.java` | Topping model with inventory amounts |
 | `Customer.java` | Customer model |
-| `Discount.java` | Discount model |
-| `CreateTables.sql` | Schema creation |
-| `CreateSPs.sql` | Stored procedures |
-| `CreateViews.sql` | Views used for reports (`ToppingPopularity`, `ProfitByPizza`, `ProfitByOrderType`) |
-| `PopulateData.sql` | Sample seed data |
+| `Discount.java` | Discount model (flat or percentage) |
+
+### SQL Scripts
+
+| File | Purpose |
+|---|---|
+| `CreateTables.sql` | Creates all database tables and constraints |
+| `CreateSPs.sql` | Creates stored procedures |
+| `CreateViews.sql` | Creates views for reporting (`ToppingPopularity`, `ProfitByPizza`, `ProfitByOrderType`) |
+| `PopulateData.sql` | Inserts sample seed data |
 | `DropTables.sql` | Drops all tables for a clean reset |
+
+---
 
 ## Troubleshooting
 
-**`Could not load the driver`** — the MySQL Connector/J JAR is not on the classpath. Double-check the `-cp` flag includes the JAR path.
-
-**`Access denied for user`** — the username or password in `DBConnector.java` does not match your MySQL credentials.
-
-**`Unknown database 'PizzaDB'`** — the SQL scripts have not been run yet, or the `database_name` field in `DBConnector.java` does not match the database created by the scripts.
+| Error | Cause | Fix |
+|---|---|---|
+| `Could not load the driver` | Connector/J JAR missing from classpath | Verify the `-cp` flag includes the correct JAR filename and path |
+| `Access denied for user` | Wrong credentials | Update `user` and `password` in `DBConnector.java` |
+| `Unknown database 'PizzaDB'` | Database not yet created | Run the SQL setup scripts; confirm `database_name` matches the database name in the scripts |
+| `Communications link failure` | MySQL server not running or wrong host/port | Start MySQL and verify the `url` in `DBConnector.java` |
