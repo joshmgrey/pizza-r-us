@@ -35,16 +35,16 @@ A Java console application for managing a pizza restaurant's orders, customers, 
 Start your MySQL server, then log in and run the setup scripts **in the order shown below**:
 
 ```sql
-source CreateTables.sql
-source CreateSPs.sql
-source CreateViews.sql
-source PopulateData.sql
+source sql/CreateTables.sql
+source sql/CreateSPs.sql
+source sql/CreateViews.sql
+source sql/PopulateData.sql
 ```
 
 To wipe and reset the database at any point:
 
 ```sql
-source DropTables.sql
+source sql/DropTables.sql
 ```
 
 Then re-run the setup scripts above.
@@ -53,7 +53,7 @@ Then re-run the setup scripts above.
 
 ### 2. Configure the Connection
 
-Open [`DBConnector.java`](DBConnector.java) and update the four fields to match your local MySQL installation:
+Open [`src/cpsc4620/DBConnector.java`](src/cpsc4620/DBConnector.java) and update the four fields to match your local MySQL installation:
 
 ```java
 protected static String user          = "root";
@@ -68,7 +68,7 @@ private static String   url           = "jdbc:mysql://127.0.0.1:3306";
 
 ### 3. Download the JDBC Driver
 
-Download the MySQL Connector/J JAR from the [official MySQL downloads page](https://dev.mysql.com/downloads/connector/j/) — select **Platform Independent**. Place the JAR in the project root directory.
+Download the MySQL Connector/J JAR from the [official MySQL downloads page](https://dev.mysql.com/downloads/connector/j/) — select **Platform Independent**. Place the JAR in the `lib/` directory.
 
 The commands below assume version `9.3.0`. Replace the filename with the version you downloaded.
 
@@ -80,13 +80,15 @@ Open a terminal in the project root directory and run:
 
 **Windows (PowerShell)**
 ```powershell
-javac -cp ".;mysql-connector-j-9.3.0.jar" *.java
+javac -cp ".;lib/mysql-connector-j-9.3.0.jar" -d out src/cpsc4620/*.java
 ```
 
 **macOS / Linux**
 ```bash
-javac -cp ".:mysql-connector-j-9.3.0.jar" *.java
+javac -cp ".:lib/mysql-connector-j-9.3.0.jar" -d out src/cpsc4620/*.java
 ```
+
+This outputs compiled `.class` files to an `out/` directory.
 
 ---
 
@@ -94,43 +96,42 @@ javac -cp ".:mysql-connector-j-9.3.0.jar" *.java
 
 **Windows (PowerShell)**
 ```powershell
-java -cp ".;mysql-connector-j-9.3.0.jar" cpsc4620.Menu
+java -cp "out;lib/mysql-connector-j-9.3.0.jar" cpsc4620.Menu
 ```
 
 **macOS / Linux**
 ```bash
-java -cp ".:mysql-connector-j-9.3.0.jar" cpsc4620.Menu
+java -cp "out:lib/mysql-connector-j-9.3.0.jar" cpsc4620.Menu
 ```
 
 ---
 
 ## Project Structure
 
-### Java Source Files
-
-| File | Role |
-|---|---|
-| `DBConnector.java` | Establishes the JDBC connection to MySQL |
-| `DBNinja.java` | Data access layer — all queries and updates |
-| `Menu.java` | Application entry point and interactive menu loop |
-| `Order.java` | Base order model |
-| `DineinOrder.java` | Dine-in order (extends `Order`) |
-| `PickupOrder.java` | Pickup order (extends `Order`) |
-| `DeliveryOrder.java` | Delivery order with address (extends `Order`) |
-| `Pizza.java` | Pizza model |
-| `Topping.java` | Topping model with inventory amounts |
-| `Customer.java` | Customer model |
-| `Discount.java` | Discount model (flat or percentage) |
-
-### SQL Scripts
-
-| File | Purpose |
-|---|---|
-| `CreateTables.sql` | Creates all database tables and constraints |
-| `CreateSPs.sql` | Creates stored procedures |
-| `CreateViews.sql` | Creates views for reporting (`ToppingPopularity`, `ProfitByPizza`, `ProfitByOrderType`) |
-| `PopulateData.sql` | Inserts sample seed data |
-| `DropTables.sql` | Drops all tables for a clean reset |
+```
+pizza-r-us/
+├── src/
+│   └── cpsc4620/
+│       ├── DBConnector.java       # JDBC connection setup
+│       ├── DBNinja.java           # Data access layer
+│       ├── Menu.java              # Entry point and UI loop
+│       ├── Order.java             # Base order model
+│       ├── DineinOrder.java       # Dine-in order
+│       ├── PickupOrder.java       # Pickup order
+│       ├── DeliveryOrder.java     # Delivery order with address
+│       ├── Pizza.java             # Pizza model
+│       ├── Topping.java           # Topping with inventory amounts
+│       ├── Customer.java          # Customer model
+│       └── Discount.java          # Discount model (flat or percentage)
+├── sql/
+│   ├── CreateTables.sql           # Schema creation
+│   ├── CreateSPs.sql              # Stored procedures
+│   ├── CreateViews.sql            # Reporting views
+│   ├── PopulateData.sql           # Sample seed data
+│   └── DropTables.sql             # Drops all tables for a clean reset
+├── lib/                           # Place mysql-connector-j-x.x.x.jar here
+└── README.md
+```
 
 ---
 
@@ -138,7 +139,7 @@ java -cp ".:mysql-connector-j-9.3.0.jar" cpsc4620.Menu
 
 | Error | Cause | Fix |
 |---|---|---|
-| `Could not load the driver` | Connector/J JAR missing from classpath | Verify the `-cp` flag includes the correct JAR filename and path |
+| `Could not load the driver` | Connector/J JAR missing from classpath | Verify the `-cp` flag points to the correct JAR in `lib/` |
 | `Access denied for user` | Wrong credentials | Update `user` and `password` in `DBConnector.java` |
-| `Unknown database 'PizzaDB'` | Database not yet created | Run the SQL setup scripts; confirm `database_name` matches the database name in the scripts |
+| `Unknown database 'PizzaDB'` | Database not yet created | Run the SQL setup scripts; confirm `database_name` matches |
 | `Communications link failure` | MySQL server not running or wrong host/port | Start MySQL and verify the `url` in `DBConnector.java` |
